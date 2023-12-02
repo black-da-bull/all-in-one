@@ -33,7 +33,7 @@ RUN set -ex; \
     make configs; \
     rename -v ".jcfg.sample" ".jcfg" /usr/local/etc/janus/*.jcfg.sample
 
-FROM alpine:3.18.2
+FROM alpine:3.18.5
 ENV ETURNAL_ETC_DIR="/conf"
 COPY --from=janus     /usr/local                          /usr/local
 COPY --from=eturnal   /opt/eturnal                        /opt/eturnal
