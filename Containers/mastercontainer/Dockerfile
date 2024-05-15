@@ -1,11 +1,12 @@
+# syntax=docker/dockerfile:latest
 # Docker CLI is a requirement
-FROM docker:24.0.7-cli as docker
+FROM docker:26.1.2-cli as docker
 
 # Caddy is a requirement
 FROM caddy:2.7.6-alpine as caddy
 
-# From https://github.com/docker-library/php/blob/master/8.2/alpine3.18/fpm/Dockerfile
-FROM php:8.2.14-fpm-alpine3.18
+# From https://github.com/docker-library/php/blob/master/8.3/alpine3.19/fpm/Dockerfile
+FROM php:8.3.7-fpm-alpine3.19
 
 EXPOSE 80
 EXPOSE 8080
@@ -18,6 +19,7 @@ WORKDIR /var/www/docker-aio
 
 # hadolint ignore=SC2086,DL3047,DL3003,DL3004
 RUN set -ex; \
+    apk upgrade --no-cache -a; \
     apk add --no-cache shadow; \
     groupmod -g 333 xfs; \
     usermod -u 333 -g 333 xfs; \

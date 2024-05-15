@@ -3,12 +3,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose convert -c -f latest.yml --namespace {{ .Values.NAMESPACE }}
-    kompose.version: 1.31.2 (a92241f79)
+    kompose.cmd: kompose convert -c -f latest.yml --namespace "{{ .Values.NAMESPACE }}"
+    kompose.version: 1.33.0 (3ce457399)
   labels:
     io.kompose.service: nextcloud-aio-talk
   name: nextcloud-aio-talk
-  namespace: {{ .Values.NAMESPACE }}
+  namespace: "{{ .Values.NAMESPACE }}"
 spec:
   replicas: 1
   selector:
@@ -17,14 +17,18 @@ spec:
   template:
     metadata:
       annotations:
-        kompose.cmd: kompose convert -c -f latest.yml --namespace {{ .Values.NAMESPACE }}
-        kompose.version: 1.31.2 (a92241f79)
+        kompose.cmd: kompose convert -c -f latest.yml --namespace "{{ .Values.NAMESPACE }}"
+        kompose.version: 1.33.0 (3ce457399)
       labels:
         io.kompose.network/nextcloud-aio: "true"
         io.kompose.service: nextcloud-aio-talk
     spec:
       containers:
         - env:
+            - name: TALK_MAX_STREAM_BITRATE
+              value: "{{ .Values.TALK_MAX_STREAM_BITRATE }}"
+            - name: TALK_MAX_SCREEN_BITRATE
+              value: "{{ .Values.TALK_MAX_SCREEN_BITRATE }}"
             - name: INTERNAL_SECRET
               value: "{{ .Values.TALK_INTERNAL_SECRET }}"
             - name: NC_DOMAIN
@@ -37,7 +41,7 @@ spec:
               value: "{{ .Values.TURN_SECRET }}"
             - name: TZ
               value: "{{ .Values.TIMEZONE }}"
-          image: nextcloud/aio-talk:20240117_083657-latest
+          image: "{{ .Values.IMAGE_MIRROR_PREFIX }}{{ .Values.NEXTCLOUD_IMAGE_ORG }}/aio-talk:20240502_104630-latest"
           name: nextcloud-aio-talk
           ports:
             - containerPort: {{ .Values.TALK_PORT }}
@@ -46,4 +50,8 @@ spec:
               protocol: UDP
             - containerPort: 8081
               protocol: TCP
+          securityContext:
+            capabilities:
+              drop:
+                - NET_RAW
 {{- end }}

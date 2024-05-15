@@ -1,5 +1,7 @@
 # Reverse Proxy Documentation
 
+**Note:** The maintainers of AIO noticed that this documentation is not easy. All contributions that improve this are very welcome!
+
 A [reverse proxy](https://en.wikipedia.org/wiki/Reverse_proxy) is basically a web server that enables computers on the internet to access a service in a [private subnet](https://en.wikipedia.org/wiki/Private_network).
 
 **Please note:** Publishing the AIO interface with a valid certificate to the public internet is **not** the goal of this documentation! Instead, the main goal is to publish Nextcloud with a valid certificate to the public internet which is **not** running inside the mastercontainer but in a different container! If you need a valid certificate for the AIO interface, see [point 5](#5-optional-get-a-valid-certificate-for-the-aio-interface).
@@ -102,6 +104,10 @@ Add this as a new Apache site config:
     SSLCipherSuite          ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305
     SSLHonorCipherOrder     off
     SSLSessionTickets       off
+
+    # If running apache on a subdomain (eg. nextcloud.example.com) of a domain that already has an wildcard ssl certificate from certbot on this machine, 
+    # the <your-nc-domain> in the below lines should be replaced with just the domain (eg. example.com), not the subdomain. 
+    # In this case the subdomain should already be secured without additional actions
     SSLCertificateFile /etc/letsencrypt/live/<your-nc-domain>/fullchain.pem
     SSLCertificateKeyFile /etc/letsencrypt/live/<your-nc-domain>/privkey.pem
 
@@ -295,7 +301,7 @@ backend Nextcloud
 
 </details>
 
-### Nginx
+### Nginx, Freenginx, Openresty
 
 <details>
 
@@ -357,6 +363,9 @@ server {
         proxy_set_header Connection $connection_upgrade;
     }
 
+    # If running nginx on a subdomain (eg. nextcloud.example.com) of a domain that already has an wildcard ssl certificate from certbot on this machine, 
+    # the <your-nc-domain> in the below lines should be replaced with just the domain (eg. example.com), not the subdomain. 
+    # In this case the subdomain should already be secured without additional actions
     ssl_certificate /etc/letsencrypt/live/<your-nc-domain>/fullchain.pem;   # managed by certbot on host machine
     ssl_certificate_key /etc/letsencrypt/live/<your-nc-domain>/privkey.pem; # managed by certbot on host machine
 
@@ -699,7 +708,9 @@ Simply translate the docker run command into a docker-compose file. You can have
 Use this environment variable during the initial startup of the mastercontainer to make the apache container only listen on localhost: `--env APACHE_IP_BINDING=127.0.0.1`. **Attention:** This is only recommended to be set if you use `localhost` in your reverse proxy config to connect to your AIO instance. If you use an ip-address instead of localhost, you should set it to `0.0.0.0`.
 
 ## 4. Open the AIO interface.
-After starting AIO, you should be able to access the AIO Interface via `https://ip.address.of.the.host:8080`. Enter your domain that you've entered in the reverse proxy config and you should be done. Please do not forget to open/forward port `3478/TCP` and `3478/UDP` in your firewall/router for the Talk container!
+After starting AIO, you should be able to access the AIO Interface via `https://ip.address.of.the.host:8080`.<br>
+⚠️ **Important:** do always use an ip-address if you access this port and not a domain as HSTS might block access to it later! (It is also expected that this port uses a self-signed certificate due to security concerns which you need to accept in your browser)<br>
+Enter your domain in the AIO interface that you've used in the reverse proxy config and you should be done. Please do not forget to open/forward port `3478/TCP` and `3478/UDP` in your firewall/router for the Talk container!
 
 ## 5. Optional: get a valid certificate for the AIO interface
 

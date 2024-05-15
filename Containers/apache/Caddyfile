@@ -14,7 +14,10 @@
     }
 }
 
+https://{$ADDITIONAL_TRUSTED_DOMAIN}:443,
 {$PROTOCOL}://{$NC_DOMAIN}:{$APACHE_PORT} {
+    header -Server
+    header -X-Powered-By
 
     # Collabora
     route /browser/* {
@@ -53,8 +56,8 @@
 
     # Nextcloud
     route {
-        rewrite /.well-known/carddav /remote.php/dav
-        rewrite /.well-known/caldav /remote.php/dav
+        rewrite /.well-known/carddav /remote.php/dav/
+        rewrite /.well-known/caldav /remote.php/dav/
         header Strict-Transport-Security max-age=31536000;
         reverse_proxy localhost:8000
     }

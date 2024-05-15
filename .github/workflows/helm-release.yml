@@ -32,9 +32,13 @@ jobs:
 
       # See https://github.com/helm/chart-releaser-action/issues/6
       - name: Set up Helm
-        uses: azure/setup-helm@v3.5
+        uses: azure/setup-helm@v4
         with:
           version: v3.6.3
+
+      - name: Run Helm Lint
+        run: |
+          helm lint ./nextcloud-aio-helm-chart
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
