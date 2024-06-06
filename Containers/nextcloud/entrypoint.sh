@@ -19,6 +19,13 @@ run_upgrade_if_needed_due_to_app_update() {
     fi
 }
 
+# Only start container if redis is accessible
+# shellcheck disable=SC2153
+while ! nc -z "$REDIS_HOST" "6379"; do
+    echo "Waiting for redis to start..."
+    sleep 5
+done
+
 # Check permissions in ncdata
 touch "$NEXTCLOUD_DATA_DIR/this-is-a-test-file" &>/dev/null
 if ! [ -f "$NEXTCLOUD_DATA_DIR/this-is-a-test-file" ]; then
@@ -212,7 +219,11 @@ if ! [ -f "$NEXTCLOUD_DATA_DIR/skip.update" ]; then
 DATADIR_PERMISSION_CONF
 
             echo "Installing with PostgreSQL database"
-            INSTALL_OPTIONS+=(--database pgsql --database-name "$POSTGRES_DB" --database-user "$POSTGRES_USER" --database-pass "$POSTGRES_PASSWORD" --database-host "$POSTGRES_HOST")
+            # Set a default value for POSTGRES_PORT
+            if [ -z "$POSTGRES_PORT" ]; then
+              POSTGRES_PORT=5432
+            fi
+            INSTALL_OPTIONS+=(--database pgsql --database-name "$POSTGRES_DB" --database-user "$POSTGRES_USER" --database-pass "$POSTGRES_PASSWORD" --database-host "$POSTGRES_HOST" --database-port "$POSTGRES_PORT")
 
             echo "Starting Nextcloud installation..."
             if ! php /var/www/html/occ maintenance:install "${INSTALL_OPTIONS[@]}"; then
@@ -470,6 +481,13 @@ php /var/www/html/occ app:enable support
 if [ -n "$SUBSCRIPTION_KEY" ] && [ -z "$(php /var/www/html/occ config:app:get support potential_subscription_key)" ]; then
     php /var/www/html/occ config:app:set support potential_subscription_key --value="$SUBSCRIPTION_KEY"
     php /var/www/html/occ config:app:delete support last_check
+fi
+if [ -n "$NEXTCLOUD_DEFAULT_QUOTA" ]; then
+    if [ "$NEXTCLOUD_DEFAULT_QUOTA" = "unlimited" ]; then
+        php /var/www/html/occ config:app:delete files default_quota
+    else
+        php /var/www/html/occ config:app:set files default_quota --value="$NEXTCLOUD_DEFAULT_QUOTA"
+    fi
 fi
 
 # Adjusting log files to be stored on a volume
